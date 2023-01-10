@@ -113,6 +113,7 @@ class Category4 extends HTMLElement {
     const self = this;
     $li.forEach((el)=>{
       el.addEventListener('click',function() {
+        if(self.getAttribute('state') == 'mousemove') return;
         $li.forEach((li) => {
           li.classList.remove('active')
         });
