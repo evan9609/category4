@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="zh">
+  <head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>F2E homework by Evan</title>
+    <!--css-->
+    <link rel="stylesheet" href="./css/style.css">
+  </head>
+  <body> 
+    <main>
+      <nav> 
+        <div class="photo" data-upload-item="">
+          <div class="preview" data-preview=""></div>
+          <label>
+            <div class="text show">大頭貼</div>
+            <p>請選擇檔案</p>
+            <input class="upload-btn" type="file" title="">
+          </label>
+        </div>
+      </nav>
+      <section class="practice-block"> 
+        <category-el arrow="on">
+          <ul> 
+            <li>option1</li>
+            <li>option2</li>
+            <li>option3</li>
+            <li>option4</li>
+            <li>option5</li>
+            <li>option6</li>
+            <li>option7</li>
+            <li>option8</li>
+            <li>option9</li>
+            <li>option10</li>
+            <li>option11</li>
+            <li>option12</li>
+            <li>option13</li>
+            <li>option14</li>
+          </ul>
+        </category-el>
+      </section>
+      <section class="ripple-block"> 
+        <ripple-btn class="test-button" r4-color="#fff" r4-duration="600" r4-hover="true">ripple</ripple-btn>
+        <ripple-btn class="test-button" r4-color="#fff" r4-duration="600" r4-hover="true">ripple2</ripple-btn>
+        <ripple-btn class="test-button" r4-color="#fff" r4-duration="600" r4-hover="true">ripple3</ripple-btn>
+      </section>
+      <section class="modal-block" data-aost data-aost-fade-up>
+        <h3>Modal4 + Anchor4 + Aost4 </h3>
+        <div class="button" onclick="_g.modalOpen()">click</div>
+      </section>
+      <section class="category-block" data-aost data-aost-fade-up>
+        <h3>category slider</h3>
+        <div class="category-slider">
+          <div class="wrapper"> 
+            <div class="item active">
+              <p>item1</p>
+            </div>
+            <div class="item">
+              <p>item2</p>
+            </div>
+            <div class="item">
+              <p>item3</p>
+            </div>
+            <div class="item">
+              <p>item4</p>
+            </div>
+            <div class="item">
+              <p>item5</p>
+            </div>
+            <div class="item">
+              <p>item6</p>
+            </div>
+            <div class="item">
+              <p>item7</p>
+            </div>
+            <div class="item">
+              <p>item8</p>
+            </div>
+            <div class="item">
+              <p>item9</p>
+            </div>
+            <div class="item">
+              <p>item10</p>
+            </div>
+            <div class="item">
+              <p>item11</p>
+            </div>
+            <div class="item">
+              <p>item12</p>
+            </div>
+            <div class="item">
+              <p>item13</p>
+            </div>
+            <div class="item">
+              <p>item14</p>
+            </div>
+            <div class="item">
+              <p>item15</p>
+            </div>
+            <div class="item">
+              <p>item16</p>
+            </div>
+            <div class="item">
+              <p>item17</p>
+            </div>
+            <div class="item">
+              <p>item18</p>
+            </div>
+            <div class="item">
+              <p>item19</p>
+            </div>
+            <div class="item">
+              <p>item20</p>
+            </div>
+          </div>
+        </div>
+      </section>
+      <section class="dropdown-block" data-aost data-aost-fade-up>
+        <h3>dropdown4 </h3>
+        <div class="dropdown-group">
+          <dropdown-el d4-placeholder="下拉選單A" control-elements=".dist" multiple>
+            <li>option1</li>
+            <li>option2</li>
+            <li>option3</li>
+            <li>option4</li>
+            <li>option5</li>
+            <li>option6</li>
+          </dropdown-el>
+          <dropdown-el class="dist disabled" d4-placeholder="請先選擇A" d4-value="下拉選單B">
+            <li>option1</li>
+            <li data-option="custom-id">option2</li>
+            <li>option3</li>
+            <li>option4</li>
+            <li>option5</li>
+            <li>option6</li>
+            <li style="display: none;">下拉選單B</li>
+          </dropdown-el>
+        </div>
+      </section>
+    </main>
+    <!--JS-->
+    <script defer src="./plugin/jquery-3.6.0.min.js"> </script>
+    <script defer src="./plugin/fesdDB.js"></script>
+    <script defer src="./js/global.min.js"></script>
+    <script defer src="./js/index.min.js"></script>
+  </body>
+</html>

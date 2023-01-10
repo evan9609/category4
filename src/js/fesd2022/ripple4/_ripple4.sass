@@ -1,0 +1,54 @@
+ripple-btn
+  overflow: hidden
+  position: relative
+  display: flex
+  justify-content: center
+  align-items: center
+  cursor: pointer
+  &.button
+    
+    // background-color: #000
+    // color: #fff
+  span 
+    width: 100px
+    height: 100px
+    position: absolute
+    background: #fff
+    // color: #7a1b1b
+    transform: translate(-50%, -50%) scale(0)
+    pointer-events: none
+    border-radius: 50%
+    animation: animate .6s linear
+    opacity: 1
+  &.bg
+    background: #7a1b1b
+
+  @keyframes animate 
+    100% 
+      // width: 500px
+      // height: 500px
+      transform: translate(-50%, -50%) scale(4)
+      opacity: 0
+
+// hover event's hover-btn
+.hover-btn
+  position: relative
+  z-index: 1
+  overflow: hidden
+  // -webkit-mask-image: -webkit-radial-gradient(white, black)
+  &:hover
+    .hover-ball
+      transform: translate(-50%, -50%) scale(1)
+  // hover時的球球
+  .hover-ball
+    position: absolute
+    z-index: -1
+    left: 0
+    top: 0
+    width: 400px
+    height: 400px
+    border-radius: 50%
+    background-color: #d8b774
+    pointer-events: none
+    transform: translate(-50%, -50%) scale(0)
+    transition: transform .8s cubic-bezier(0.6, 0.25, 0, 1)
