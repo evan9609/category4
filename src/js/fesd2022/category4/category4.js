@@ -1,5 +1,21 @@
 import OPTIONS from './options.js'
 
+// const createTemplate = (el) => {
+//   const { TEMPLATE } = OPTIONS;
+//   console.log(TEMPLATE);
+//   const { childDom } = el;
+//   const container = document.createElement('div');
+//   container.innerHTML = TEMPLATE;
+
+//   const content = container.querySelector('.category-wrapper');
+
+//   [...childDom].forEach((child) => {
+//     content.append(child);
+//   });
+
+//   return container.children[0];
+// }
+
 class Category4 extends HTMLElement {
   constructor() {
     super();
@@ -8,9 +24,12 @@ class Category4 extends HTMLElement {
       clientEnd: 0,
       distance: 0,
       offset: 0,
+      scrollX: 0,
+      clickItem: null,
     };
   };
   connectedCallback() {
+    // this.#create();
     this.responsive();
   }
   static get observedAttributes() {
@@ -22,12 +41,32 @@ class Category4 extends HTMLElement {
         break;
     }
   }
+  allItems= this.querySelectorAll('li')
+
+  // copy from modal4
+  // #create() {
+
+  //   this.__events__ = {};
+
+  //   this.#mount();
+  // }
+
+  // #mount() {
+  //   // this.childDom = this.childNodes;
+  //   this.template = createTemplate(this);
+
+  //   this.innerHTML = '';
+  //   this.append(this.template);
+
+  //   this.responsive();
+  // }
+
+
+
   slidable() {
-    console.log('slidable');
     this.setAttribute('slidable','');
     this.getValue();
     this.detectOffset();
-    this.itemActive();
     this.event();
     this.resize();
   }
@@ -36,9 +75,8 @@ class Category4 extends HTMLElement {
     this.removeAttribute('slidable');
   }
   responsive() {
-    const { breakpoint } = OPTIONS.SETTINGS;
     const self = this;
-    console.log(breakpoint);
+    const breakpoint = this.getAttribute('breakpoint') || 0;
     if(!breakpoint){
       this.slidable();
     } else if ( window.innerWidth <= breakpoint) {
@@ -108,29 +146,25 @@ class Category4 extends HTMLElement {
       },delay)
     }
   }
-  itemActive() {
-    const $li = this.querySelectorAll('li');
-    const self = this;
-    $li.forEach((el)=>{
-      el.addEventListener('click',function() {
-        if(self.getAttribute('state') == 'mousemove') return;
-        $li.forEach((li) => {
-          li.classList.remove('active')
-        });
-        this.classList.add('active');
-        const scrollX = this.offsetLeft - (self.val.wrapWidth - this.offsetWidth)/2;
-        self.scrollTo({
-          top: 0,
-          left: scrollX,
-          behavior: 'smooth',
-        })
-      })
+  activeChange() {
+    this.allItems.forEach((el)=>{el.classList.remove('active')});
+    this.clickItem.classList.add('active');
+    this.scrollTo({
+      top: 0,
+      left: this.scrollX,
+      behavior: 'smooth',
     })
   }
   event() {
     const self = this;
     const val = this.val;
     let timer;
+    this.allItems.forEach((el)=>{
+      el.addEventListener('mousedown',function() {
+        self.clickItem = this;
+        self.scrollX = this.offsetLeft - (self.val.wrapWidth - this.offsetWidth)/2;
+      })
+    })
     this.addEventListener('mousedown',function(e){
       if(this.getAttribute('slidable') === null) {
         this.setAttribute('offset','');
@@ -145,13 +179,14 @@ class Category4 extends HTMLElement {
         self.transform(e);
     })
     window.addEventListener('mouseup',function(e) {
-      console.log('mouseup');
       const state = self.getAttribute('state');
-      if(state == 'mousedown' || state == 'mousemove')
+      if(state == 'mousedown'){
+        self.activeChange();
+      }else if(state == 'mousemove'){
         self.mouseUp();
+      }
     })
     this.addEventListener('scroll',function(e) {
-      console.log('scroll');
       const state = self.getAttribute('state');
       clearTimeout(timer);
       if(state == 'mousemove') return;
