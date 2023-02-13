@@ -1,24 +1,25 @@
 import OPTIONS from './options.js'
 
-// const createTemplate = (el) => {
-//   const { TEMPLATE } = OPTIONS;
-//   console.log(TEMPLATE);
-//   const { childDom } = el;
-//   const container = document.createElement('div');
-//   container.innerHTML = TEMPLATE;
+const createTemplate = (el) => {
+  const { TEMPLATE } = OPTIONS;
 
-//   const content = container.querySelector('.category-wrapper');
+  // const { childDom } = el;
+  const container = document.createElement('div');
+  container.innerHTML = TEMPLATE;
 
-//   [...childDom].forEach((child) => {
-//     content.append(child);
-//   });
+  const content = container.querySelector('.category-wrapper');
 
-//   return container.children[0];
-// }
+  [...el.childNodes].forEach((child) => {
+    content.append(child);
+  });
+
+  return container.children[0];
+}
 
 class Category4 extends HTMLElement {
   constructor() {
     super();
+    this.allItems = this.querySelectorAll('li');
     this.val = {
       clientStart: 0,
       clientEnd: 0,
@@ -29,8 +30,8 @@ class Category4 extends HTMLElement {
     };
   };
   connectedCallback() {
-    // this.#create();
-    this.responsive();
+    this.#init();
+    // this.responsive();
   }
   static get observedAttributes() {
     return ['state','offset']
@@ -41,27 +42,29 @@ class Category4 extends HTMLElement {
         break;
     }
   }
-  allItems= this.querySelectorAll('li')
+  
+  #init() {
+    this.#create();
+    console.log(this)
+  }
 
-  // copy from modal4
-  // #create() {
+  #create() {
 
-  //   this.__events__ = {};
+    this.__events__ = {};
 
-  //   this.#mount();
-  // }
+    this.#mount();
+  }
 
-  // #mount() {
-  //   // this.childDom = this.childNodes;
-  //   this.template = createTemplate(this);
+  #mount() {
 
-  //   this.innerHTML = '';
-  //   this.append(this.template);
+    // this.childDom = this.childNodes;
+    this.template = createTemplate(this);
 
-  //   this.responsive();
-  // }
+    this.innerHTML = '';
+    this.append(this.template);
 
-
+    this.responsive();
+  }
 
   slidable() {
     this.setAttribute('slidable','');
