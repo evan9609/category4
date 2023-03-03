@@ -9,6 +9,12 @@ const createTemplate = (el) => {
 
   const content = container.querySelector('.category-list');
   const dropdown = container.querySelector('dropdown-el');
+  const arrow_left = `<svg width="8" height="12" viewBox="0 0 8 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <path opacity="0.8" d="M7 1L2 6L7 11" stroke="black" stroke-width="2"/>
+  </svg>`;
+  const arrow_right = `<svg width="8" height="12" viewBox="0 0 8 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <path opacity="0.8" d="M1 1L6 6L1 11" stroke="black" stroke-width="2"/>
+  </svg>`;
 
   [...childDom].forEach((child) => {
     content.append(child);
@@ -18,7 +24,10 @@ const createTemplate = (el) => {
     const li = document.createElement('li')
     li.innerHTML = child.innerHTML
     dropdown.append(li)
-  })
+  });
+
+  container.querySelector('.category-left').innerHTML = arrow_left;
+  container.querySelector('.category-right').innerHTML = arrow_right;
 
   // if(el.hasAttribute('dropdown-aaa')){
   //   [...childDom].forEach((child) => {
