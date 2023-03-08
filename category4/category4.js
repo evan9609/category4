@@ -1,7 +1,7 @@
 import OPTIONS from './options.js'
 
 const createTemplate = (el) => {
-  const { TEMPLATE } = OPTIONS;
+  const { TEMPLATE, SETTINGS } = OPTIONS;
 
   const { childDom } = el;
   const container = document.createElement('div');
@@ -9,12 +9,12 @@ const createTemplate = (el) => {
 
   const content = container.querySelector('.category-list');
   const dropdown = container.querySelector('dropdown-el');
-  const arrow_left = `<svg width="8" height="12" viewBox="0 0 8 12" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <path opacity="0.8" d="M7 1L2 6L7 11" stroke="black" stroke-width="2"/>
-  </svg>`;
-  const arrow_right = `<svg width="8" height="12" viewBox="0 0 8 12" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <path opacity="0.8" d="M1 1L6 6L1 11" stroke="black" stroke-width="2"/>
-  </svg>`;
+  // const arrow_left = `<svg width="8" height="12" viewBox="0 0 8 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+  // <path opacity="0.8" d="M7 1L2 6L7 11" stroke="black" stroke-width="2"/>
+  // </svg>`;
+  // const arrow_right = `<svg width="8" height="12" viewBox="0 0 8 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+  // <path opacity="0.8" d="M1 1L6 6L1 11" stroke="black" stroke-width="2"/>
+  // </svg>`;
 
   [...childDom].forEach((child) => {
     content.append(child);
@@ -26,8 +26,8 @@ const createTemplate = (el) => {
     dropdown.append(li)
   });
 
-  container.querySelector('.category-left').innerHTML = arrow_left;
-  container.querySelector('.category-right').innerHTML = arrow_right;
+  container.querySelector('.category-left').innerHTML = SETTINGS.arrow_left;
+  container.querySelector('.category-right').innerHTML = SETTINGS.arrow_right;
 
   // if(el.hasAttribute('dropdown-aaa')){
   //   [...childDom].forEach((child) => {
@@ -45,6 +45,7 @@ class Category4 extends HTMLElement {
   constructor() {
     super();
     this.allItems = this.querySelectorAll('li');
+    this.$El = {};
     this.val = {
       clientStart: 0,
       clientEnd: 0,
@@ -70,7 +71,6 @@ class Category4 extends HTMLElement {
   
   #init() {
     this.#create();
-    console.log(this)
   }
 
   #create() {
@@ -78,6 +78,7 @@ class Category4 extends HTMLElement {
     this.__events__ = {};
 
     this.#mount();
+
   }
 
   #mount() {
@@ -88,18 +89,26 @@ class Category4 extends HTMLElement {
     this.innerHTML = '';
     this.append(this.template);
 
+    this.#queryEl();
+
     this.responsive();
   }
 
+  #queryEl() {
+    this.$El.scrollContent = this.querySelector('.category-scroll');
+    this.$El.scrollList = this.querySelector('.category-list');
+    this.$El.arrowLeft = this.querySelector('.category-left');
+    this.$El.arrowRight = this.querySelector('.category-right');
+    console.log(new Array(this))
+  }
+
   slideControl() {
-    const slideWrap = this.querySelector('.category-scroll');
-    const slideContent = this.querySelector('.category-list');
-    console.log(slideContent)
     this.setAttribute('slidable','');
     this.getValue();
     this.detectOffset();
     this.event();
     this.resize();
+    this.arrowEvent();
   }
   destroy() {
     console.log('destroy');
@@ -127,8 +136,8 @@ class Category4 extends HTMLElement {
   }
   getValue() {
     const val = this.val
-    val.wrapWidth = this.querySelector('.category-scroll').offsetWidth;
-    val.listWidth = this.querySelector('.category-list').offsetWidth;
+    val.wrapWidth = this.$El.scrollContent.offsetWidth;
+    val.listWidth = this.$El.scrollList.offsetWidth;
     val.scrollMax = this.calcMax();
   }
   // 計算滑動最大值
@@ -149,6 +158,10 @@ class Category4 extends HTMLElement {
       this.setAttribute('offset',val.offset);
     }
   }
+
+  itemOffset(e) {
+    this.scrollX = e.offsetLeft - (this.val.wrapWidth - e.offsetWidth)/2;
+  }
   transform(e) {
     const val = this.val;
 
@@ -158,7 +171,7 @@ class Category4 extends HTMLElement {
 
     this.detectOffset();
 
-    this.scrollTo(val.offset,0)
+    this.$El.scrollContent.scrollTo(val.offset,0)
     this.setAttribute('state','mousemove');
   }
   mouseUp() {
@@ -177,16 +190,15 @@ class Category4 extends HTMLElement {
       },delay)
     }
   }
-  activeChange() {
+  activeChange(clickItem) {
     this.allItems.forEach((el)=>{el.classList.remove('active')});
-    if(this.clickItem != null) {
-      this.clickItem.classList.add('active');
-      this.querySelector('.category-scroll').scrollTo({
-        top: 0,
-        left: this.scrollX,
-        behavior: 'smooth',
-      })
-    }
+    clickItem.classList.add('active');
+    console.log(clickItem);
+    this.$El.scrollContent.scrollTo({
+      top: 0,
+      left: this.scrollX,
+      behavior: 'smooth',
+    })
   }
   event() {
     const self = this;
@@ -194,12 +206,11 @@ class Category4 extends HTMLElement {
     let timer;
     this.allItems.forEach((el)=>{
       el.addEventListener('mousedown',function() {
-        console.log(this)
         self.clickItem = this;
-        self.scrollX = this.offsetLeft - (self.val.wrapWidth - this.offsetWidth)/2;
+        self.itemOffset(el);
       })
     })
-    this.querySelector('.category-list').addEventListener('mousedown',function(e){
+    this.$El.scrollList.addEventListener('mousedown',function(e){
       if(self.getAttribute('slidable') === null) {
         self.setAttribute('offset','');
         return;
@@ -207,24 +218,25 @@ class Category4 extends HTMLElement {
       val.clientStart = e.clientX;
       self.setAttribute('state','mousedown');
     })
-    this.querySelector('.category-scroll').addEventListener('mousemove',function(e) {
+    this.$El.scrollContent.addEventListener('mousemove',function(e) {
       const state = self.getAttribute('state');
       if(state == 'mousedown' || state == 'mousemove')
         self.transform(e);
     })
+
     window.addEventListener('mouseup',function(e) {
       const state = self.getAttribute('state');
       if(state == 'mousedown'){
-        self.activeChange();
-        console.log('change')
+        self.activeChange(self.clickItem);
+        self.setAttribute('state','');
       }else if(state == 'mousemove'){
+        e.stopPropagation();
         self.mouseUp();
       }
     })
-    this.querySelector('.category-scroll').addEventListener('scroll',function(e) {
+    this.$El.scrollContent.addEventListener('scroll',function(e) {
       const state = self.getAttribute('state');
       clearTimeout(timer);
-      console.log(val.scrollMax)
       if(state == 'mousemove') return;
       self.setAttribute('state','touchmove');
       if(this.scrollLeft == 0){
@@ -245,6 +257,44 @@ class Category4 extends HTMLElement {
     window.addEventListener('resize',function() {
       self.getValue();
     })
+  }
+  arrowLock() {
+    
+  }
+  arrowEvent() {
+    const { arrowLeft, arrowRight } = this.$El;
+    const self = this;
+    arrowLeft.addEventListener('click',function() {
+      const target = self.clickItem.previousElementSibling == null ? self.clickItem : self.clickItem.previousElementSibling;
+      self.itemOffset(target);
+      self.activeChange(target);
+      self.clickItem = target;
+      if(self.clickItem.previousElementSibling == null){
+        this.classList.add('lock')
+      }else{
+        this.classList.remove('lock');
+        arrowRight.classList.remove('lock');
+      }
+    })
+    arrowRight.addEventListener('click',function() {
+      const target = self.clickItem.nextElementSibling == null ? self.clickItem : self.clickItem.nextElementSibling;
+      if(target == self.clickItem){
+        this.classList.add('lock')
+      }else{
+        this.classList.remove('lock')
+      }
+      self.itemOffset(target);
+      self.activeChange(target);
+      self.clickItem = target;
+      if(self.clickItem.nextElementSibling == null){
+        this.classList.add('lock')
+      }else{
+        this.classList.remove('lock');
+        arrowLeft.classList.remove('lock');
+      }
+    })
+
+
   }
 }
 
