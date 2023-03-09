@@ -8,7 +8,7 @@ export default {
     <path opacity="0.8" d="M1 1L6 6L1 11" stroke="black" stroke-width="2"/>
     </svg>`,
   },
-  TEMPLATE(arrow,dropdown) {
+  TEMPLATE(type,arrow,dropdown) {
     return `<div class="category-wrapper">
     <div class="category-slide">
     <div class="category-left"></div>

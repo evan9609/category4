@@ -7,36 +7,25 @@ const createTemplate = (el) => {
   const container = document.createElement('div');
   container.innerHTML = TEMPLATE;
 
-  const content = container.querySelector('.category-list');
+  const listWrapper = container.querySelector('.category-list');
   const dropdown = container.querySelector('dropdown-el');
-  // const arrow_left = `<svg width="8" height="12" viewBox="0 0 8 12" fill="none" xmlns="http://www.w3.org/2000/svg">
-  // <path opacity="0.8" d="M7 1L2 6L7 11" stroke="black" stroke-width="2"/>
-  // </svg>`;
-  // const arrow_right = `<svg width="8" height="12" viewBox="0 0 8 12" fill="none" xmlns="http://www.w3.org/2000/svg">
-  // <path opacity="0.8" d="M1 1L6 6L1 11" stroke="black" stroke-width="2"/>
-  // </svg>`;
 
   [...childDom].forEach((child) => {
-    content.append(child);
+    listWrapper.append(child);
   });
 
-  [...el.allItems].forEach((child) => {
-    const li = document.createElement('li')
-    li.innerHTML = child.innerHTML
-    dropdown.append(li)
-  });
+  //dropdown4
+  // [...el.allItems].forEach((child) => {
+  //   const li = document.createElement('li')
+  //   li.innerHTML = child.innerHTML
+  //   dropdown.append(li)
+  // });
 
-  container.querySelector('.category-left').innerHTML = SETTINGS.arrow_left;
-  container.querySelector('.category-right').innerHTML = SETTINGS.arrow_right;
-
-  // if(el.hasAttribute('dropdown-aaa')){
-  //   [...childDom].forEach((child) => {
-  //     dropdown.append(child);
-      
-  //   });
-  //   console.log('dddd')
-
-  // }
+  // 是否有箭頭
+  if(el.params.arrow == 'on'){
+    container.querySelector('.category-left').innerHTML = SETTINGS.arrow_left;
+    container.querySelector('.category-right').innerHTML = SETTINGS.arrow_right;
+  }
 
   return container.children[0];
 }
@@ -44,20 +33,25 @@ const createTemplate = (el) => {
 class Category4 extends HTMLElement {
   constructor() {
     super();
-    this.allItems = this.querySelectorAll('li');
+    this.params = {
+      type: this.getAttribute('type'),
+      arrow: this.getAttribute('arrow'),
+      breakpoint: this.getAttribute('breakpoint'),
+      dropdown: this.getAttribute('dropdown'),
+    }
     this.$El = {};
+    this.allItems = this.querySelectorAll('li');
     this.val = {
       clientStart: 0,
       clientEnd: 0,
       distance: 0,
       offset: 0,
       scrollX: 0,
-      clickItem: null,
+      activeItem: null,
     };
   };
   connectedCallback() {
     this.#init();
-    // this.responsive();
   }
   static get observedAttributes() {
     return ['state','offset']
@@ -71,6 +65,15 @@ class Category4 extends HTMLElement {
   
   #init() {
     this.#create();
+
+    this.eventDrag();
+    this.responsive();
+    this.focusActiveItem();
+
+    if(this.params.arrow == 'on'){
+      this.arrowEvent();
+    }
+
   }
 
   #create() {
@@ -91,61 +94,83 @@ class Category4 extends HTMLElement {
 
     this.#queryEl();
 
-    this.responsive();
+    this.activeItem = this.querySelector('li.active');
   }
 
+  // 抓取元素
   #queryEl() {
-    this.$El.scrollContent = this.querySelector('.category-scroll');
-    this.$El.scrollList = this.querySelector('.category-list');
-    this.$El.arrowLeft = this.querySelector('.category-left');
-    this.$El.arrowRight = this.querySelector('.category-right');
+    const el = this.$El;
+
+    el.scrollContent = this.querySelector('.category-scroll');
+    el.scrollList = this.querySelector('.category-list');
+    el.arrowLeft = this.querySelector('.category-left');
+    el.arrowRight = this.querySelector('.category-right');
     console.log(new Array(this))
   }
 
+  // 拖曳模式
   slideControl() {
-    this.setAttribute('slidable','');
+    this.setAttribute('initialized','');
+
     this.getValue();
     this.detectOffset();
-    this.event();
-    this.resize();
-    this.arrowEvent();
+    
+    this.findActive();
   }
+
+  // 移除拖曳模式
   destroy() {
-    console.log('destroy');
-    this.removeAttribute('slidable');
+    if(this.hasAttribute('initialized')){
+      console.log('destroy');
+      this.removeAttribute('initialized');
+    }
   }
+  
+  // 響應式判斷
   responsive() {
     const self = this;
-    const breakpoint = this.getAttribute('breakpoint') || 0;
-    if(!breakpoint){
+    const { breakpoint } = this.params;
+    // 第一次判斷
+    if(!breakpoint || window.innerWidth <= breakpoint)
       this.slideControl();
-    } else if ( window.innerWidth <= breakpoint) {
-      this.setAttribute('slidable','');
-      this.slideControl();
-    } else {
+
+    //如果有設斷點,需加resize判斷
+    if(breakpoint){
       window.addEventListener('resize',function() {
-        if ( window.innerWidth <= breakpoint ){
-          if(self.getAttribute('slidable') == null)
-          self.slideControl()
+        if ( window.innerWidth <= breakpoint){
+          if(!self.hasAttribute('initialized')){
+            self.slideControl()
+          }
         }else{
-          if(self.getAttribute('slidable') == '')
           self.destroy();
         }
       })
     }
   }
+
+  // 載入初始滑動至 active item
+  findActive() {
+    if(this.getAttribute('type') == 'category') {
+      this.itemOffset(this.activeItem);
+      this.activeChange(this.activeItem);
+    }
+  }
+
+  // 取得各項數值,放入val
   getValue() {
-    const val = this.val
+    const val = this.val;
     val.wrapWidth = this.$El.scrollContent.offsetWidth;
     val.listWidth = this.$El.scrollList.offsetWidth;
     val.scrollMax = this.calcMax();
   }
-  // 計算滑動最大值
+
+  // 計算可拖曳最大值
   calcMax() {
     const val = this.val
     return Number(val.listWidth - val.wrapWidth)
   }
-  // 顯示偏移量
+
+  // 顯示偏移位置
   detectOffset() {
     const val = this.val;
     if(val.offset >=  val.scrollMax){
@@ -159,9 +184,12 @@ class Category4 extends HTMLElement {
     }
   }
 
+  // 計算 li 置中的距離
   itemOffset(e) {
     this.scrollX = e.offsetLeft - (this.val.wrapWidth - e.offsetWidth)/2;
   }
+
+  // 計算距離,並使 active item 滑至中央
   transform(e) {
     const val = this.val;
 
@@ -174,66 +202,79 @@ class Category4 extends HTMLElement {
     this.$El.scrollContent.scrollTo(val.offset,0)
     this.setAttribute('state','mousemove');
   }
+
+  // mouseup 時,狀態改變
   mouseUp() {
     const val = this.val;
     val.clientEnd = val.offset;
     this.setAttribute('state','');
   }
+
+  // 延遲判斷
   debounce(func, delay) {
-    let timeout = null;
+    let timer;
     return function() {
-      let a = this;
-      let args = arguments;
-      clearTimeout(timeout);
-      timeout = setTimeout(function() {
-        func.apply(a,args)
-      },delay)
+      if(timer) clearTimeout(timer);
+      timer = setTimeout(func, delay);
     }
   }
-  activeChange(clickItem) {
+
+  // 切換 active item
+  activeChange(item) {
     this.allItems.forEach((el)=>{el.classList.remove('active')});
-    clickItem.classList.add('active');
-    console.log(clickItem);
+    item.classList.add('active');
+    this.activeItem = item;
+    this.itemOffset(item);
     this.$El.scrollContent.scrollTo({
       top: 0,
       left: this.scrollX,
       behavior: 'smooth',
     })
+
+    // 判斷箭頭顯示與否
+    this.arrowLock(item);
   }
-  event() {
+
+  // 拖曳及點擊事件
+  // 若滑鼠按下未移動，則判斷為 click 事件
+  eventDrag() {
     const self = this;
     const val = this.val;
     let timer;
-    this.allItems.forEach((el)=>{
-      el.addEventListener('mousedown',function() {
-        self.clickItem = this;
-        self.itemOffset(el);
-      })
-    })
+
     this.$El.scrollList.addEventListener('mousedown',function(e){
-      if(self.getAttribute('slidable') === null) {
+
+      // 如果不是拖曳模式,不顯示 offset
+      if(!self.hasAttribute('initialized')) {
         self.setAttribute('offset','');
-        return;
+        // return;
       }
+
+      // 只要滑鼠按下,就必須更新點擊位置
       val.clientStart = e.clientX;
       self.setAttribute('state','mousedown');
+
     })
+
+    // 拖曳事件
     this.$El.scrollContent.addEventListener('mousemove',function(e) {
       const state = self.getAttribute('state');
       if(state == 'mousedown' || state == 'mousemove')
         self.transform(e);
     })
 
+    // 滑鼠放開,需判斷是 click or 位移
     window.addEventListener('mouseup',function(e) {
       const state = self.getAttribute('state');
-      if(state == 'mousedown'){
-        self.activeChange(self.clickItem);
-        self.setAttribute('state','');
-      }else if(state == 'mousemove'){
-        e.stopPropagation();
-        self.mouseUp();
+      if(state == 'mousedown' && e.target.nodeName
+      == 'LI'){
+        self.activeChange(e.target);
       }
+      self.mouseUp();
     })
+
+    // 補充判斷 行動裝置 touch 即可拖曳
+    // 但不會觸發mouse事件,仍需回傳數值
     this.$El.scrollContent.addEventListener('scroll',function(e) {
       const state = self.getAttribute('state');
       clearTimeout(timer);
@@ -252,49 +293,51 @@ class Category4 extends HTMLElement {
       },100)
     })
   }
-  resize() {
+
+  // resize時 active item 維持在中間
+  // 避免判斷太密集,需延遲 300
+  focusActiveItem() {
     const self = this;
-    window.addEventListener('resize',function() {
-      self.getValue();
-    })
+    window.addEventListener('resize',
+      self.debounce(
+        function(){
+          self.getValue();
+          self.activeChange(self.activeItem)}, 300)
+    )
   }
-  arrowLock() {
-    
+
+  // active item 為第一個和最一個時,箭頭隱藏
+  arrowLock(target) {
+    const { arrowLeft, arrowRight } = this.$El;
+    const allItems = this.allItems;
+    if(target == allItems[0]){
+      arrowLeft.classList.add('lock')
+    }else{
+      arrowLeft.classList.remove('lock');
+      arrowRight.classList.remove('lock');
+    }
+
+    if(target == allItems[allItems.length - 1]){
+      arrowRight.classList.add('lock')
+    }else{
+      arrowRight.classList.remove('lock')
+    }
   }
+
+  // 箭頭點擊事件
   arrowEvent() {
     const { arrowLeft, arrowRight } = this.$El;
     const self = this;
     arrowLeft.addEventListener('click',function() {
-      const target = self.clickItem.previousElementSibling == null ? self.clickItem : self.clickItem.previousElementSibling;
-      self.itemOffset(target);
+      const item = self.activeItem;
+      const target = item.previousElementSibling == null ? item : item.previousElementSibling;
       self.activeChange(target);
-      self.clickItem = target;
-      if(self.clickItem.previousElementSibling == null){
-        this.classList.add('lock')
-      }else{
-        this.classList.remove('lock');
-        arrowRight.classList.remove('lock');
-      }
     })
     arrowRight.addEventListener('click',function() {
-      const target = self.clickItem.nextElementSibling == null ? self.clickItem : self.clickItem.nextElementSibling;
-      if(target == self.clickItem){
-        this.classList.add('lock')
-      }else{
-        this.classList.remove('lock')
-      }
-      self.itemOffset(target);
+      const item = self.activeItem;
+      const target = item.nextElementSibling == null ? item : item.nextElementSibling;
       self.activeChange(target);
-      self.clickItem = target;
-      if(self.clickItem.nextElementSibling == null){
-        this.classList.add('lock')
-      }else{
-        this.classList.remove('lock');
-        arrowLeft.classList.remove('lock');
-      }
     })
-
-
   }
 }
 
