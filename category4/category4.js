@@ -170,7 +170,7 @@ class Category4 extends HTMLElement {
     return Number(val.listWidth - val.wrapWidth)
   }
 
-  // 顯示偏移位置
+  // 顯示偏移狀態
   detectOffset() {
     const val = this.val;
     if(val.offset >=  val.scrollMax){
@@ -189,7 +189,7 @@ class Category4 extends HTMLElement {
     this.scrollX = e.offsetLeft - (this.val.wrapWidth - e.offsetWidth)/2;
   }
 
-  // 計算距離,並使 active item 滑至中央
+  // 計算拖曳距離
   transform(e) {
     const val = this.val;
 
@@ -199,8 +199,8 @@ class Category4 extends HTMLElement {
 
     this.detectOffset();
 
-    this.$El.scrollContent.scrollTo(val.offset,0)
-    this.setAttribute('state','mousemove');
+    this.$El.scrollContent.scrollTo(this.val.offset,0)
+    // this.setAttribute('state','mousemove');
   }
 
   // mouseup 時,狀態改變
@@ -231,6 +231,9 @@ class Category4 extends HTMLElement {
       behavior: 'smooth',
     })
 
+    // this.val.offset = this.$El.scrollContent.scrollLeft
+    // console.log(this.val.offset,'active')
+
     // 判斷箭頭顯示與否
     this.arrowLock(item);
   }
@@ -247,20 +250,20 @@ class Category4 extends HTMLElement {
       // 如果不是拖曳模式,不顯示 offset
       if(!self.hasAttribute('initialized')) {
         self.setAttribute('offset','');
-        // return;
       }
 
       // 只要滑鼠按下,就必須更新點擊位置
       val.clientStart = e.clientX;
       self.setAttribute('state','mousedown');
-
     })
 
     // 拖曳事件
     this.$El.scrollContent.addEventListener('mousemove',function(e) {
       const state = self.getAttribute('state');
-      if(state == 'mousedown' || state == 'mousemove')
+      if(state == 'mousedown' || state == 'mousemove'){
         self.transform(e);
+        self.setAttribute('state','mousemove');
+      }
     })
 
     // 滑鼠放開,需判斷是 click or 位移
@@ -279,13 +282,14 @@ class Category4 extends HTMLElement {
       const state = self.getAttribute('state');
       clearTimeout(timer);
       if(state == 'mousemove') return;
-      self.setAttribute('state','touchmove');
+        self.setAttribute('state','touchmove');
       if(this.scrollLeft == 0){
         self.setAttribute('offset','isStart');
       } else if(this.scrollLeft >= val.scrollMax) {
         self.setAttribute('offset','isEnd');
       } else {
         self.setAttribute('offset',this.scrollLeft);
+        self.val.offset = this.scrollLeft;
       }
       val.clientEnd = this.scrollLeft;
       timer = setTimeout(function() {
